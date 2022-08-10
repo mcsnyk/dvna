@@ -29,5 +29,4 @@ jobs:
         
     - name: Snyk Open Source Scanning Again with monitoring
       run: snyk monitor
-      continue-on-error: true
       
