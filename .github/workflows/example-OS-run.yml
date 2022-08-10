@@ -32,6 +32,6 @@ jobs:
     - run: snyk auth ${{ secrets.SNYK_TOKEN }}
         
     - name: Snyk Open Source Scanning Again with monitoring
-      run: snyk monitor --org=${{ secrets.SNYK_ORG }} --all-projects
+      run: snyk monitor --all-projects
       continue-on-error: true
       
