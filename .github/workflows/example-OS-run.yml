@@ -1,32 +1,38 @@
-name: OS Scanning
+name: Snyk SCA, Code, IaC and Container CLI monitor example
 
-# Runs 4 Snyk Products (Code, Open Source, Container, IaC)
-# Snyk installation via npm
-# Node.js version: 18.4
-# Outputs the results to the pipeline and in SARIF-format to the security tab
-
-# Prerequisites:
-# - Set a SNYK_TOKEN and a SNYK_ORG in the pipelines secrets
-
-on: [push, pull_request]
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   build:
+    name: Test and build
+    environment: snyk-npm
     runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v2
+strategy:
+  matrix:
+    node-version: [16.x]
 
-    - name: Use Node.js for installing Snyk 
-      uses: actions/setup-node@v2
-      with:
-        node-version: 18.4
+    # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
-    # Install & prepare Snyk
-    - run: npm install --location=global snyk
+steps:
+  - uses: actions/checkout@v2
+  - name: Use Node.js ${{ matrix.node-version }}
+    uses: actions/setup-node@v2
+    with:
+      node-version: ${{ matrix.node-version }}
+      cache: 'npm'
+
+  - name: Setup Snyk + snyk-to-html # For information about the required commands for generating an HTML report see https://github.com/snyk/snyk-to-html
+    run: |
+      npm install snyk -g
+      npm install snyk-to-html -g
+      snyk auth ${{secrets.SNYK_AUTH}}
+  - name: Snyk Open Source # For testing and failing please add snyk test before snyk monitor
+    run: |
+      snyk monitor
       
-    - run: snyk auth ${{ secrets.SNYK_TOKEN }}
-        
-    - name: Snyk Open Source Scanning Again with monitoring
-      run: snyk monitor
       
